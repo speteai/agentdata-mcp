@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.agentdata-api/mcp-server",
+  "description": "Crypto market data for AI agents via x402. 16 tools: prices, funding, DeFi yields, arbitrage, TA.",
+  "repository": {
+    "url": "https://github.com/agentdata-api/mcp-server",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "agentdata-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "Wallet private key (0x-prefixed) for auto-paying requests with USDC on Base Mainnet. If not set, the server returns 402 payment info and the client handles payment manually.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true,
+          "name": "AGENTDATA_BUYER_PRIVATE_KEY"
+        },
+        {
+          "description": "Override the AgentData API base URL (default: https://agentdata-api.com)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "AGENTDATA_BASE_URL"
+        }
+      ]
+    }
+  ]
+}
