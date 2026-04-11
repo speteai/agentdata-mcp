@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.agentdata-api/mcp-server",
+  "name": "io.github.speteai/agentdata-mcp",
   "description": "Crypto market data for AI agents via x402. 16 tools: prices, funding, DeFi yields, arbitrage, TA.",
   "repository": {
-    "url": "https://github.com/agentdata-api/mcp-server",
+    "url": "https://github.com/speteai/agentdata-mcp",
     "source": "github"
   },
   "version": "1.0.0",
@@ -17,7 +17,7 @@
       },
       "environmentVariables": [
         {
-          "description": "Wallet private key (0x-prefixed) for auto-paying requests with USDC on Base Mainnet. If not set, the server returns 402 payment info and the client handles payment manually.",
+          "description": "Wallet private key (0x-prefixed) for auto-paying requests with USDC on Base Mainnet.",
           "isRequired": false,
           "format": "string",
           "isSecret": true,
