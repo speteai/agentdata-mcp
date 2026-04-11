@@ -1,0 +1,19 @@
+{
+  "name": "agentdata-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for AgentData API — crypto market data for AI agents via x402",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "agentdata-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["mcp", "x402", "crypto", "defi", "ai-agents", "market-data"],
+  "author": "AgentData",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  }
+}
