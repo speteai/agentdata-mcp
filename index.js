@@ -22,43 +22,72 @@ import {
 const BASE_URL = process.env.AGENTDATA_BASE_URL || 'https://agentdata-api.com';
 const BUYER_KEY = process.env.AGENTDATA_BUYER_PRIVATE_KEY;
 
+// The PAYMENT-REQUIRED header speaks x402 v2, where the field is `amount` and
+// the network is CAIP-2. Only the 402 *body* still uses v1's
+// `maxAmountRequired`. Reading the header and then asking for the v1 name
+// yields undefined, and BigInt(undefined) throws — which meant this client
+// could not complete a single payment. Resolve once, use everywhere.
+const amountOf = (accept) => accept.amount ?? accept.maxAmountRequired;
+
 // ============ TOOL DEFINITIONS ============
 
 const TOOLS = [
+  // Listed first deliberately. These are the things an agent cannot build for
+  // itself — it exists only while it runs, so it cannot wait, remember, or
+  // compare against its own last look. A wired-up agent also never re-reads the
+  // catalogue: whatever it will buy, it learns here, at integration time.
+  {
+    name: 'get_changes_since_last_call',
+    description: 'Only what changed for a signal since THIS wallet last paid for it. Costs $0.001 USDC — cheaper than any full payload. The server keeps the cursor, keyed to your wallet, so you never re-download or re-diff data you already hold. First call returns the last 24h.',
+    inputSchema: { type: 'object', properties: { signal: { type: 'string', description: 'sentiment, funding-rates, liquidation-levels, volatility, correlation, positioning, supply, stablecoin-health, macro-onchain, defi-yields, dex-vs-cex, arbitrage-opportunities, funding-predictions' } }, required: ['signal'] },
+    endpoint: '/api/diff',
+  },
+  {
+    name: 'watch_condition',
+    description: 'Register a standing condition and let the always-on server watch it for you. Costs $0.010 USDC, lifetime up to 168h. Then poll watch_status for free instead of paying for repeated data calls.',
+    inputSchema: { type: 'object', properties: { signal: { type: 'string' }, subject: { type: 'string', description: 'e.g. BTC_USDT' }, op: { type: 'string', enum: ['above','below'] }, threshold: { type: 'number' }, hours: { type: 'number' } }, required: ['signal','op','threshold'] },
+    endpoint: '/api/watch',
+  },
+  {
+    name: 'get_signal_calibration',
+    description: 'FREE. How often the signals here actually turned out right, scored against a naive baseline. Every claim is recorded before the outcome exists and scored afterwards from the recorded series. Read this before trusting any signal — including to see which ones do not yet justify their price.',
+    inputSchema: { type: 'object', properties: { days: { type: 'number' } }, required: [] },
+    endpoint: '/calibration',
+  },
   // Market Data
   {
     name: 'get_crypto_prices',
-    description: 'Get real-time prices for BTC, ETH, SOL, BNB, XRP. Costs $0.001 USDC.',
+    description: 'Get real-time prices for BTC, ETH, SOL, BNB, XRP. Costs $0.002 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/prices',
   },
   {
     name: 'get_funding_rates',
-    description: 'Get perpetual futures funding rates for BTC/ETH/SOL with long/short signals. Costs $0.001 USDC.',
+    description: 'Get perpetual futures funding rates for BTC/ETH/SOL with long/short signals. Costs $0.002 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/funding-rates',
   },
   {
     name: 'get_market_overview',
-    description: 'Get full market overview with sentiment bias, arbitrage detection, funding yield. Costs $0.002 USDC.',
+    description: 'Get full market overview with sentiment bias, arbitrage detection, funding yield. Costs $0.003 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/market-overview',
   },
   {
     name: 'get_volatility',
-    description: 'Get 24h volatility, range, and annualized volatility for BTC/ETH/SOL. Costs $0.001 USDC.',
+    description: 'Get 24h volatility, range, and annualized volatility for BTC/ETH/SOL. Costs $0.002 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/volatility',
   },
   {
     name: 'get_liquidation_levels',
-    description: 'Get estimated liquidation zones by leverage (5x/10x/20x) for BTC/ETH/SOL. Costs $0.002 USDC.',
+    description: 'Get estimated liquidation zones by leverage (5x/10x/20x) for BTC/ETH/SOL. Costs $0.003 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/liquidation-levels',
   },
   {
     name: 'get_correlation',
-    description: 'Get 30-day price correlation matrix (ETH/BTC, SOL/BTC, SOL/ETH). Costs $0.001 USDC.',
+    description: 'Get 30-day price correlation matrix (ETH/BTC, SOL/BTC, SOL/ETH). Costs $0.002 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/correlation',
   },
@@ -66,19 +95,19 @@ const TOOLS = [
   // On-Chain
   {
     name: 'get_gas_prices',
-    description: 'Get current gas prices for Base, Ethereum, Solana with USD cost estimation. Costs $0.001 USDC.',
+    description: 'Get current gas prices for Base, Ethereum, Solana with USD cost estimation. Costs $0.002 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/gas-prices',
   },
   {
     name: 'get_base_activity',
-    description: 'Get Base Mainnet network activity: TPS, block stats, gas utilization. Costs $0.002 USDC.',
+    description: 'Get Base Mainnet network activity: TPS, block stats, gas utilization. Costs $0.003 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/base-activity',
   },
   {
     name: 'get_defi_yields',
-    description: 'Get top DeFi yield opportunities from Aave, Compound, Morpho, Pendle (via DefiLlama). Costs $0.002 USDC.',
+    description: 'Get top DeFi yield opportunities from Aave, Compound, Morpho, Pendle (via DefiLlama). Costs $0.003 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/defi-yields',
   },
@@ -86,13 +115,13 @@ const TOOLS = [
   // Arbitrage
   {
     name: 'get_arbitrage_opportunities',
-    description: 'Get cross-exchange arbitrage opportunities between MEXC, Binance, Bybit, OKX. Costs $0.003 USDC.',
+    description: 'Get cross-exchange arbitrage opportunities between MEXC, Binance, Bybit, OKX. Costs $0.005 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/arbitrage-opportunities',
   },
   {
     name: 'get_dex_vs_cex',
-    description: 'Get DEX aggregated prices vs CEX prices with spread analysis for BTC/ETH/SOL. Costs $0.003 USDC.',
+    description: 'Get DEX aggregated prices vs CEX prices with spread analysis for BTC/ETH/SOL. Costs $0.005 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/dex-vs-cex',
   },
@@ -125,13 +154,13 @@ const TOOLS = [
   // Sentiment
   {
     name: 'get_sentiment',
-    description: 'Get composite market sentiment: Fear & Greed Index + Funding-based + composite score. Costs $0.001 USDC.',
+    description: 'Get composite market sentiment: Fear & Greed Index + Funding-based + composite score. Costs $0.002 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/sentiment',
   },
   {
     name: 'get_stablecoin_health',
-    description: 'Get stablecoin peg monitoring (USDC, DAI live depeg check) + top 10 stablecoins by market cap. Costs $0.001 USDC.',
+    description: 'Get stablecoin peg monitoring (USDC, DAI live depeg check) + top 10 stablecoins by market cap. Costs $0.002 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/stablecoin-health',
   },
@@ -139,7 +168,7 @@ const TOOLS = [
   // Historical
   {
     name: 'get_historical',
-    description: 'Get historical OHLCV candles for backtesting. Costs $0.005 USDC.',
+    description: 'Get historical OHLCV candles for backtesting. Costs $0.010 USDC.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -197,7 +226,7 @@ async function initX402Client() {
         message: {
           from: account.address,
           to: accept.payTo,
-          value: BigInt(accept.maxAmountRequired),
+          value: BigInt(amountOf(accept)),
           validAfter: BigInt(validAfter),
           validBefore: BigInt(validBefore),
           nonce,
@@ -207,7 +236,7 @@ async function initX402Client() {
       const paymentPayload = {
         x402Version: 2, scheme: 'exact', network: accept.network,
         payload: { signature, authorization: {
-          from: account.address, to: accept.payTo, value: accept.maxAmountRequired,
+          from: account.address, to: accept.payTo, value: amountOf(accept),
           validAfter: String(validAfter), validBefore: String(validBefore), nonce,
         }},
       };
