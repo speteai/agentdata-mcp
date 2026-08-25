@@ -65,7 +65,7 @@ const TOOLS = [
   },
   {
     name: 'get_signal_history_30d',
-    description: 'The last 30 days of a recorded signal. Costs $0.010 USDC. Anchored on Base like every recorded day.',
+    description: 'The last 30 days of a recorded signal. Costs $0.012 USDC. Anchored on Base like every recorded day.',
     inputSchema: { type: 'object', properties: { signal: { type: 'string' } }, required: ['signal'] },
     endpoint: '/api/history/30d',
   },
@@ -89,13 +89,13 @@ const TOOLS = [
   },
   {
     name: 'get_positioning',
-    description: 'Long/short positioning ratios across venues. Costs $0.003 USDC.',
+    description: 'Long/short positioning ratios across venues. Costs $0.005 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/positioning',
   },
   {
     name: 'get_etf_flows',
-    description: 'Daily spot BTC/ETH ETF net flows in millions USD, with 30 days of history. Costs $0.003 USDC.',
+    description: 'Daily spot BTC/ETH ETF net flows in millions USD, with 30 days of history. Costs $0.005 USDC.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/etf-flows',
   },
@@ -208,7 +208,7 @@ const TOOLS = [
   // Technical Analysis
   {
     name: 'get_technical_indicators',
-    description: 'Get RSI, MACD, Bollinger Bands, ATR for a symbol/interval. Costs $0.002 USDC.',
+    description: 'Get RSI, MACD, Bollinger Bands, ATR for a symbol/interval. Costs $0.003 USDC.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -220,7 +220,7 @@ const TOOLS = [
   },
   {
     name: 'get_support_resistance',
-    description: 'Get support & resistance levels via fractal analysis on 4h timeframe. Costs $0.003 USDC.',
+    description: 'Get support & resistance levels via fractal analysis on 4h timeframe. Costs $0.005 USDC.',
     inputSchema: {
       type: 'object',
       properties: {
