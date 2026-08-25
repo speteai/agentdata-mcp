@@ -9,7 +9,7 @@
 
 ## What this is
 
-A thin MCP wrapper around the [AgentData API](https://agentdata-api.com) — a production x402 service on Base Mainnet. Any MCP-compatible LLM can use these 16 tools with no setup beyond adding one line to your client config.
+A thin MCP wrapper around the [AgentData API](https://agentdata-api.com) — a production x402 service on Base Mainnet. Any MCP-compatible LLM can use these 31 tools with no setup beyond adding one line to your client config — four of them free, so you can try before paying.
 
 ## Two modes
 
@@ -66,24 +66,46 @@ node index.js
 
 ## Available Tools
 
-| Tool | Price | Use case |
-|------|-------|----------|
-| `get_crypto_prices` | $0.001 | Real-time BTC/ETH/SOL/BNB/XRP prices |
-| `get_funding_rates` | $0.001 | Perp funding with long/short bias |
-| `get_market_overview` | $0.002 | Full market sentiment + arb signals |
-| `get_volatility` | $0.001 | 24h vol, range, annualized |
-| `get_liquidation_levels` | $0.002 | Leverage-based liq zones |
-| `get_correlation` | $0.001 | 30-day correlation matrix |
-| `get_gas_prices` | $0.001 | Multi-chain gas (Base/ETH/SOL) |
-| `get_base_activity` | $0.002 | Base network TPS + blocks |
-| `get_defi_yields` | $0.002 | Top yields from DefiLlama |
-| `get_arbitrage_opportunities` | $0.003 | Cross-exchange spreads |
-| `get_dex_vs_cex` | $0.003 | DEX vs CEX price comparison |
-| `get_technical_indicators` | $0.002 | RSI, MACD, BB, ATR |
-| `get_support_resistance` | $0.003 | S/R via fractal analysis |
-| `get_sentiment` | $0.001 | Fear & Greed + composite |
-| `get_stablecoin_health` | $0.001 | USDC/DAI peg monitoring |
-| `get_historical` | $0.005 | OHLCV for backtesting |
+Generated from the running service, not maintained by hand — the old table listed 16 tools
+at prices that had drifted (`get_crypto_prices` was shown at $0.001 and costs $0.002).
+Four tools are free, including the calibration record: read that before trusting any signal.
+
+| Tool | Price | What it gives you |
+|------|-------|-------------------|
+| `try_crypto_prices` | **free** | FREE — real-time prices for BTC, ETH, SOL, BNB, XRP |
+| `try_sentiment` | **free** | FREE — current market sentiment |
+| `try_funding_rates` | **free** | FREE — perpetual funding rates |
+| `get_signal_calibration` | **free** | FREE — How often the signals here actually turned out right, scored against… |
+| `get_changes_since_last_call` | $0.001 | Only what changed for a signal since THIS wallet last paid for it |
+| `watch_condition` | $0.010 | Register a standing condition and let the always-on server watch it for you |
+| `get_market_pulse` | $0.018 | Bundle for $0.018 USDC: 8 signals in one call and one settlement — sentimen… |
+| `get_crypto_prices` | $0.002 | Get real-time prices for BTC, ETH, SOL, BNB, XRP. |
+| `get_funding_rates` | $0.002 | Get perpetual futures funding rates for BTC/ETH/SOL with long/short signals. |
+| `get_funding_predictions` | $0.003 | Predicted next funding rate for BTC/ETH/SOL on MEXC, with time to settlement |
+| `get_market_overview` | $0.003 | Get full market overview with sentiment bias, arbitrage detection, funding … |
+| `get_volatility` | $0.002 | Get 24h volatility, range, and annualized volatility for BTC/ETH/SOL. |
+| `get_liquidation_levels` | $0.003 | Get estimated liquidation zones by leverage (5x/10x/20x) for BTC/ETH/SOL. |
+| `get_correlation` | $0.002 | Get 30-day price correlation matrix (ETH/BTC, SOL/BTC, SOL/ETH). |
+| `get_gas_prices` | $0.002 | Get current gas prices for Base, Ethereum, Solana with USD cost estimation. |
+| `get_base_activity` | $0.003 | Get Base Mainnet network activity: TPS, block stats, gas utilization. |
+| `get_defi_yields` | $0.003 | Get top DeFi yield opportunities from Aave, Compound, Morpho, Pendle (via D… |
+| `get_arbitrage_opportunities` | $0.005 | Get cross-exchange arbitrage opportunities between MEXC, Binance, Bybit, OKX. |
+| `get_dex_vs_cex` | $0.005 | Get DEX aggregated prices vs CEX prices with spread analysis for BTC/ETH/SOL. |
+| `get_technical_indicators` | $0.003 | Get RSI, MACD, Bollinger Bands, ATR for a symbol/interval. |
+| `get_support_resistance` | $0.005 | Get support & resistance levels via fractal analysis on 4h timeframe. |
+| `get_sentiment` | $0.002 | Get composite market sentiment: Fear & Greed Index + Funding-based + compos… |
+| `get_stablecoin_health` | $0.002 | Get stablecoin peg monitoring (USDC, DAI live depeg check) + top 10 stablec… |
+| `get_historical` | $0.010 | Get historical OHLCV candles for backtesting. |
+| `get_positioning` | $0.005 | Long/short positioning ratios across venues. |
+| `get_etf_flows` | $0.005 | Daily spot BTC/ETH ETF net flows in millions USD, with 30 days of history. |
+| `get_macro_onchain` | $0.003 | Macro on-chain indicators. |
+| `get_supply` | $0.003 | Circulating, total and max supply for 18 coins, with the circulating-to-tot… |
+| `get_signal_history_7d` | $0.005 | The last 7 days of a recorded signal, not just its current value |
+| `get_signal_history_30d` | $0.012 | The last 30 days of a recorded signal |
+| `get_signal_history_full` | $0.020 | The complete recorded series for a signal |
+
+Two further tools exist in the catalogue but are withheld until their data base is deep
+enough to be worth charging for; they appear here automatically once they are served.
 
 ## Environment Variables
 
@@ -94,7 +116,8 @@ node index.js
 
 ## Cost Economics
 
-For an agent querying all 16 tools once: **~$0.031 USDC**.
+For an agent querying every paid tool once: **~$0.139 USDC**. The four free tools cost nothing,
+and `get_market_pulse` bundles eight signals for $0.018 instead of $0.022 bought separately.
 For common queries (prices + sentiment): **~$0.002 USDC per full context update**.
 
 Fund your buyer wallet with $5 USDC → good for ~2500 sentiment checks or ~150 full backtesting queries.

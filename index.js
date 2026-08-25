@@ -32,6 +32,85 @@ const amountOf = (accept) => accept.amount ?? accept.maxAmountRequired;
 // ============ TOOL DEFINITIONS ============
 
 const TOOLS = [
+  // Free samples, listed before anything priced. An agent arriving here can taste
+  // the data before deciding, which the hosted endpoint has offered since
+  // 2026-08-22 while this package did not. Rate-limited to 30 requests/min per IP.
+  {
+    name: 'try_crypto_prices',
+    description: 'FREE SAMPLE, no payment: real-time prices for BTC, ETH, SOL, BNB, XRP. Rate-limited to 30 requests/min. get_crypto_prices ($0.002 USDC) is the same data without the limit.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/try/prices',
+  },
+  {
+    name: 'try_sentiment',
+    description: 'FREE SAMPLE, no payment: current market sentiment. Rate-limited to 30 requests/min. get_sentiment is the same data without the limit.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/try/sentiment',
+  },
+  {
+    name: 'try_funding_rates',
+    description: 'FREE SAMPLE, no payment: perpetual funding rates. Rate-limited to 30 requests/min. get_funding_rates ($0.002 USDC) is the same data without the limit.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/try/funding-rates',
+  },
+  // The recorded series. This is the part that cannot be fetched anywhere else:
+  // it exists only because it was written down as it happened, and each day's
+  // Merkle root is published on Base, so the record can be checked rather than
+  // believed. Verify with /anchors?verify=YYYY-MM-DD.
+  {
+    name: 'get_signal_history_7d',
+    description: 'The last 7 days of a recorded signal, not just its current value. Costs $0.005 USDC. Every recorded day is anchored on Base — verify at /anchors?verify=YYYY-MM-DD.',
+    inputSchema: { type: 'object', properties: { signal: { type: 'string', description: 'sentiment, funding-rates, liquidation-levels, volatility, correlation, positioning, supply, stablecoin-health, macro-onchain, defi-yields, dex-vs-cex, arbitrage-opportunities, funding-predictions' } }, required: ['signal'] },
+    endpoint: '/api/history/7d',
+  },
+  {
+    name: 'get_signal_history_30d',
+    description: 'The last 30 days of a recorded signal. Costs $0.010 USDC. Anchored on Base like every recorded day.',
+    inputSchema: { type: 'object', properties: { signal: { type: 'string' } }, required: ['signal'] },
+    endpoint: '/api/history/30d',
+  },
+  {
+    name: 'get_signal_history_full',
+    description: 'The complete recorded series for a signal. Costs $0.020 USDC. Anchored on Base like every recorded day.',
+    inputSchema: { type: 'object', properties: { signal: { type: 'string' } }, required: ['signal'] },
+    endpoint: '/api/history/full',
+  },
+  {
+    name: 'get_market_pulse',
+    description: 'Bundle for $0.018 USDC: 8 signals in one call and one settlement — sentiment, liquidation levels, volatility, correlation, funding predictions, positioning, supply, stablecoin health. Bought separately they cost $0.022 and eight settlements.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/market-pulse',
+  },
+  {
+    name: 'get_funding_predictions',
+    description: 'Predicted next funding rate for BTC/ETH/SOL on MEXC, with time to settlement. Costs $0.003 USDC. Check get_signal_calibration first — this signal is scored openly and does not yet beat a naive baseline on mean error.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/funding-predictions',
+  },
+  {
+    name: 'get_positioning',
+    description: 'Long/short positioning ratios across venues. Costs $0.003 USDC.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/positioning',
+  },
+  {
+    name: 'get_etf_flows',
+    description: 'Daily spot BTC/ETH ETF net flows in millions USD, with 30 days of history. Costs $0.003 USDC.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/etf-flows',
+  },
+  {
+    name: 'get_macro_onchain',
+    description: 'Macro on-chain indicators. Costs $0.003 USDC.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/macro-onchain',
+  },
+  {
+    name: 'get_supply',
+    description: 'Circulating, total and max supply for 18 coins, with the circulating-to-total ratio. A ratio below 1 under active emission is supply overhang. Costs $0.003 USDC.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/supply',
+  },
   // Listed first deliberately. These are the things an agent cannot build for
   // itself — it exists only while it runs, so it cannot wait, remember, or
   // compare against its own last look. A wired-up agent also never re-reads the
