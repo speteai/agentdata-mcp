@@ -9,7 +9,7 @@
 
 ## What this is
 
-A thin MCP wrapper around the [AgentData API](https://agentdata-api.com) — a production x402 service on Base Mainnet. Any MCP-compatible LLM can use these 31 tools with no setup beyond adding one line to your client config — four of them free, so you can try before paying.
+A thin MCP wrapper around the [AgentData API](https://agentdata-api.com) — a production x402 service on Base Mainnet. Any MCP-compatible LLM can use these 33 tools with no setup beyond adding one line to your client config — four of them free, so you can try before paying.
 
 ## Two modes
 
@@ -75,37 +75,39 @@ Four tools are free, including the calibration record: read that before trusting
 | `try_crypto_prices` | **free** | FREE — real-time prices for BTC, ETH, SOL, BNB, XRP |
 | `try_sentiment` | **free** | FREE — current market sentiment |
 | `try_funding_rates` | **free** | FREE — perpetual funding rates |
-| `get_signal_calibration` | **free** | FREE — How often the signals here actually turned out right, scored against… |
-| `get_changes_since_last_call` | $0.001 | Only what changed for a signal since THIS wallet last paid for it |
-| `watch_condition` | $0.010 | Register a standing condition and let the always-on server watch it for you |
-| `get_market_pulse` | $0.018 | Bundle for $0.018 USDC: 8 signals in one call and one settlement — sentimen… |
-| `get_crypto_prices` | $0.002 | Get real-time prices for BTC, ETH, SOL, BNB, XRP. |
-| `get_funding_rates` | $0.002 | Get perpetual futures funding rates for BTC/ETH/SOL with long/short signals. |
+| `get_signal_calibration` | **free** | FREE — How often our own signals turned out right, scored against a naive b… |
+| `get_changes_since_last_call` | $0.001 | Only what changed for a signal since THIS wallet last paid for it ($0.001 U… |
+| `watch_condition` | $0.010 | Register a standing condition and let the always-on server watch it for you… |
+| `get_market_pulse` | $0.018 | Bundle for $0.018 USDC: 8 signals in one call and one payment — sentiment, … |
+| `get_crypto_prices` | $0.002 | Real-time prices for BTC, ETH, SOL, BNB, XRP |
+| `get_funding_rates` | $0.002 | Perpetual funding rates with long/short signals |
 | `get_funding_predictions` | $0.003 | Predicted next funding rate for BTC/ETH/SOL on MEXC, with time to settlement |
-| `get_market_overview` | $0.003 | Get full market overview with sentiment bias, arbitrage detection, funding … |
-| `get_volatility` | $0.002 | Get 24h volatility, range, and annualized volatility for BTC/ETH/SOL. |
-| `get_liquidation_levels` | $0.003 | Get estimated liquidation zones by leverage (5x/10x/20x) for BTC/ETH/SOL. |
-| `get_correlation` | $0.002 | Get 30-day price correlation matrix (ETH/BTC, SOL/BTC, SOL/ETH). |
-| `get_gas_prices` | $0.002 | Get current gas prices for Base, Ethereum, Solana with USD cost estimation. |
-| `get_base_activity` | $0.003 | Get Base Mainnet network activity: TPS, block stats, gas utilization. |
-| `get_defi_yields` | $0.003 | Get top DeFi yield opportunities from Aave, Compound, Morpho, Pendle (via D… |
-| `get_arbitrage_opportunities` | $0.005 | Get cross-exchange arbitrage opportunities between MEXC, Binance, Bybit, OKX. |
-| `get_dex_vs_cex` | $0.005 | Get DEX aggregated prices vs CEX prices with spread analysis for BTC/ETH/SOL. |
-| `get_technical_indicators` | $0.003 | Get RSI, MACD, Bollinger Bands, ATR for a symbol/interval. |
-| `get_support_resistance` | $0.005 | Get support & resistance levels via fractal analysis on 4h timeframe. |
-| `get_sentiment` | $0.002 | Get composite market sentiment: Fear & Greed Index + Funding-based + compos… |
-| `get_stablecoin_health` | $0.002 | Get stablecoin peg monitoring (USDC, DAI live depeg check) + top 10 stablec… |
-| `get_historical` | $0.010 | Get historical OHLCV candles for backtesting. |
-| `get_positioning` | $0.005 | Long/short positioning ratios across venues. |
-| `get_etf_flows` | $0.005 | Daily spot BTC/ETH ETF net flows in millions USD, with 30 days of history. |
-| `get_macro_onchain` | $0.003 | Macro on-chain indicators. |
-| `get_supply` | $0.003 | Circulating, total and max supply for 18 coins, with the circulating-to-tot… |
-| `get_signal_history_7d` | $0.005 | The last 7 days of a recorded signal, not just its current value |
-| `get_signal_history_30d` | $0.012 | The last 30 days of a recorded signal |
-| `get_signal_history_full` | $0.020 | The complete recorded series for a signal |
+| `get_market_overview` | $0.003 | Full market overview with sentiment + arb signals |
+| `get_volatility` | $0.002 | 24h volatility for BTC/ETH/SOL |
+| `get_liquidation_levels` | $0.003 | Estimated liquidation zones by leverage 5x/10x/20x |
+| `get_correlation` | $0.002 | 30-day price correlation matrix |
+| `get_gas_prices` | $0.002 | Multi-chain gas prices Base/ETH/SOL |
+| `get_base_activity` | $0.003 | Base network TPS + block activity |
+| `get_defi_yields` | $0.003 | Top DeFi yields (Aave/Compound/Morpho/Pendle) |
+| `get_arbitrage_opportunities` | $0.005 | Cross-exchange spreads MEXC/Binance/Bybit/OKX |
+| `get_dex_vs_cex` | $0.005 | DEX vs CEX price comparison |
+| `get_technical_indicators` | $0.003 | RSI, MACD, Bollinger Bands, ATR |
+| `get_support_resistance` | $0.005 | S/R levels via fractal analysis |
+| `get_sentiment` | $0.002 | Fear & Greed + composite sentiment |
+| `get_stablecoin_health` | $0.002 | USDC/DAI depeg monitoring |
+| `get_historical` | $0.010 | Historical OHLCV candles |
+| `get_positioning` | $0.005 | Trader positioning: open interest, long/short ratios (global + top traders)… |
+| `get_etf_flows` | $0.005 | Spot BTC & ETH ETF daily net flows (institutional demand, USD millions) — l… |
+| `get_macro_onchain` | $0.003 | Macro & on-chain context: stablecoin supply, BTC/ETH dominance, market cap,… |
+| `get_supply` | $0.003 | Circulating/total/max supply + circ/total overhang ratio per major coin — s… |
+| `get_signal_history_7d` | $0.005 | Recorded hourly history of a derived signal, most recent 7 days  |
+| `get_signal_history_30d` | $0.012 | Recorded hourly history of a derived signal, most recent 30 days . |
+| `get_signal_history_full` | $0.020 | Complete recorded hourly history of a derived signal . |
+| `get_arbitrage_spread_history` | $0.015 | 30 days of hourly cross-exchange spreads (MEXC/Binance/Bybit/OKX)  |
+| `get_funding_accuracy` | $0.015 | Track record of our funding predictions scored against the rates observed a… |
 
-Two further tools exist in the catalogue but are withheld until their data base is deep
-enough to be worth charging for; they appear here automatically once they are served.
+The readiness gate withholds a tool until its own record is deep enough to be worth charging
+for. The last two were released on 2026-08-31; everything in the catalogue is now served.
 
 ## Environment Variables
 
@@ -116,7 +118,7 @@ enough to be worth charging for; they appear here automatically once they are se
 
 ## Cost Economics
 
-For an agent querying every paid tool once: **~$0.139 USDC**. The four free tools cost nothing,
+For an agent querying every paid tool once: **~$0.169 USDC**. The four free tools cost nothing,
 and `get_market_pulse` bundles eight signals for $0.018 instead of $0.022 bought separately.
 For common queries (prices + sentiment): **~$0.002 USDC per full context update**.
 
