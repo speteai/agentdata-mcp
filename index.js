@@ -75,6 +75,21 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { signal: { type: 'string' } }, required: ['signal'] },
     endpoint: '/api/history/full',
   },
+  // Released by the readiness gate on 2026-08-31, once their own record was deep
+  // enough to be worth charging for. Both answer a question no venue answers about
+  // itself: what the gap between them was, and whether our own forecasts held up.
+  {
+    name: 'get_arbitrage_spread_history',
+    description: '30 days of hourly cross-exchange spreads (MEXC/Binance/Bybit/OKX). Costs $0.015 USDC. Every venue publishes its own prices; nobody archives the spread between them.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/history/arbitrage-spreads',
+  },
+  {
+    name: 'get_funding_accuracy',
+    description: 'Track record of our funding predictions scored against the rates observed afterwards, over 30 days. Costs $0.015 USDC. Read it before paying for get_funding_predictions.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/funding-accuracy',
+  },
   {
     name: 'get_market_pulse',
     description: 'Bundle for $0.018 USDC: 8 signals in one call and one settlement — sentiment, liquidation levels, volatility, correlation, funding predictions, positioning, supply, stablecoin health. Bought separately they cost $0.022 and eight settlements.',
