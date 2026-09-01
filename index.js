@@ -2,8 +2,8 @@
 /**
  * AgentData MCP Server
  *
- * Exposes 16 crypto market data endpoints from https://agentdata-api.com
- * as MCP tools. Claude Desktop, Cursor, and other MCP clients can use them.
+ * Exposes the AgentData API catalogue as MCP tools for Claude Desktop, Cursor,
+ * and other MCP clients.
  *
  * Payment handling: The client (Claude Desktop, etc.) must provide its own
  * x402-capable HTTP client if they want to auto-pay. This server supports two modes:
@@ -18,20 +18,25 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import { readFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+import { createAutoPayFetch } from './x402-client.js';
 
 const BASE_URL = process.env.AGENTDATA_BASE_URL || 'https://agentdata-api.com';
 const BUYER_KEY = process.env.AGENTDATA_BUYER_PRIVATE_KEY;
-
-// The PAYMENT-REQUIRED header speaks x402 v2, where the field is `amount` and
-// the network is CAIP-2. Only the 402 *body* still uses v1's
-// `maxAmountRequired`. Reading the header and then asking for the v1 name
-// yields undefined, and BigInt(undefined) throws — which meant this client
-// could not complete a single payment. Resolve once, use everywhere.
-const amountOf = (accept) => accept.amount ?? accept.maxAmountRequired;
+const MAX_PAYMENT_USDC = process.env.AGENTDATA_MAX_PAYMENT_USDC || '0.05';
+const SESSION_BUDGET_USDC = process.env.AGENTDATA_SESSION_BUDGET_USDC || '1.00';
+const PACKAGE_VERSION = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version;
 
 // ============ TOOL DEFINITIONS ============
 
-const TOOLS = [
+export const TOOLS = [
+  {
+    name: 'get_overnight_risk_brief',
+    description: 'Decision-ready overnight risk brief for $0.015 USDC: DEX-vs-CEX spreads, liquidation zones, funding predictions, sentiment, stablecoin health, and recorded changes since this wallet last called it. Same total price as the five parts, one settlement instead of five.',
+    inputSchema: { type: 'object', properties: {}, required: [] },
+    endpoint: '/api/overnight-risk-brief',
+  },
   // Free samples, listed before anything priced. An agent arriving here can taste
   // the data before deciding, which the hosted endpoint has offered since
   // 2026-08-22 while this package did not. Rate-limited to 30 requests/min per IP.
@@ -279,83 +284,22 @@ const TOOLS = [
 
 let x402Fetch = null;
 
-async function initX402Client() {
+function initX402Client() {
   if (!BUYER_KEY) return null;
-  try {
-    const { createWalletClient, createPublicClient, http } = await import('viem');
-    const { privateKeyToAccount } = await import('viem/accounts');
-    const { base } = await import('viem/chains');
-
-    const account = privateKeyToAccount(BUYER_KEY);
-    const publicClient = createPublicClient({ chain: base, transport: http() });
-    const walletClient = createWalletClient({ account, chain: base, transport: http() });
-    const USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
-
-    return async (url) => {
-      // First attempt
-      const r1 = await fetch(url);
-      if (r1.status !== 402) return r1;
-
-      const header = r1.headers.get('payment-required');
-      if (!header) return r1;
-      const payload = JSON.parse(Buffer.from(header, 'base64').toString('utf8'));
-      const accept = payload.accepts[0];
-
-      // Sign ERC-3009 authorization
-      const validAfter = 0;
-      const validBefore = Math.floor(Date.now() / 1000) + (accept.maxTimeoutSeconds || 300);
-      const nonce = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
-
-      const signature = await walletClient.signTypedData({
-        account,
-        domain: { name: 'USD Coin', version: '2', chainId: 8453, verifyingContract: USDC },
-        types: {
-          TransferWithAuthorization: [
-            { name: 'from', type: 'address' }, { name: 'to', type: 'address' },
-            { name: 'value', type: 'uint256' }, { name: 'validAfter', type: 'uint256' },
-            { name: 'validBefore', type: 'uint256' }, { name: 'nonce', type: 'bytes32' },
-          ],
-        },
-        primaryType: 'TransferWithAuthorization',
-        message: {
-          from: account.address,
-          to: accept.payTo,
-          value: BigInt(amountOf(accept)),
-          validAfter: BigInt(validAfter),
-          validBefore: BigInt(validBefore),
-          nonce,
-        },
-      });
-
-      const paymentPayload = {
-        x402Version: 2, scheme: 'exact', network: accept.network,
-        payload: { signature, authorization: {
-          from: account.address, to: accept.payTo, value: amountOf(accept),
-          validAfter: String(validAfter), validBefore: String(validBefore), nonce,
-        }},
-      };
-      const paymentHeader = Buffer.from(JSON.stringify(paymentPayload)).toString('base64');
-
-      return fetch(url, {
-        headers: {
-          'PAYMENT-SIGNATURE': paymentHeader,
-          'X-PAYMENT': paymentHeader,
-        },
-      });
-    };
-  } catch (e) {
-    console.error('Failed to init x402 client:', e.message);
-    return null;
-  }
+  return createAutoPayFetch({
+    buyerKey: BUYER_KEY,
+    maxPaymentUsdc: MAX_PAYMENT_USDC,
+    sessionBudgetUsdc: SESSION_BUDGET_USDC,
+  });
 }
 
 // ============ MCP SERVER ============
 
 async function main() {
-  x402Fetch = await initX402Client();
+  x402Fetch = initX402Client();
 
   const server = new Server(
-    { name: 'agentdata-mcp', version: '1.0.0' },
+    { name: 'agentdata-mcp', version: PACKAGE_VERSION },
     { capabilities: { tools: {} } }
   );
 
@@ -380,7 +324,7 @@ async function main() {
 
     try {
       const fetcher = x402Fetch || fetch;
-      const res = await fetcher(url.toString());
+      const res = await fetcher(url.toString(), { signal: AbortSignal.timeout(60_000) });
 
       if (res.status === 402) {
         const header = res.headers.get('payment-required');
@@ -418,7 +362,12 @@ async function main() {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error(`AgentData MCP server running (${x402Fetch ? 'auto-pay enabled' : 'proxy mode'})`);
+  const mode = x402Fetch
+    ? `auto-pay enabled for ${x402Fetch.walletAddress}, cap ${x402Fetch.maxPaymentUsdc} USDC/call, session budget ${x402Fetch.sessionBudgetUsdc} USDC`
+    : 'proxy mode';
+  console.error(`AgentData MCP server ${PACKAGE_VERSION} running with ${TOOLS.length} tools (${mode})`);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(error => { console.error(error); process.exit(1); });
+}

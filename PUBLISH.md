@@ -1,52 +1,54 @@
-# MCP Registry Publishing Instructions
+# Publishing AgentData MCP
 
-## Prerequisites
+## Preflight
 
-1. **GitHub Account** with a repo named `mcp-server` under organization/user
-2. **npm Account** (can be free tier)
-
-## Step 1: Create GitHub repo
-
-Create `https://github.com/YOUR_USERNAME/mcp-server` (or similar), push this directory.
-
-Update `server.json` → `name` and `repository.url` accordingly.
-
-## Step 2: Publish npm package
+If this checkout still tracks the legacy `node_modules` tree, remove it from Git once before publishing:
 
 ```bash
-cd /home/pete/cryptoanalyse/x402-mcp-server
+git rm -r --cached node_modules
+git add .gitignore
+```
+
+```bash
+cd /home/pete/cryptoanalyse/agentdata-mcp
+npm ci
+npm test
+npm run check-docs
+npm run check-catalogue
+npm pack --dry-run
+```
+
+`prepublishOnly` repeats the tests and both drift checks. Publication must stop if the live service and package catalogue differ.
+
+## Synchronize a changed catalogue
+
+After the corresponding API route is deployed:
+
+```bash
+npm run sync-docs
+npm run check-catalogue
+```
+
+Review `README.md` and `server.json`, then increment the package version in `package.json`.
+
+## Publish npm
+
+```bash
 npm login
 npm publish --access public
 ```
 
-## Step 3: Register on MCP Registry
+Verify that a clean machine can resolve and start the exact published version:
 
 ```bash
-cd /home/pete/cryptoanalyse/x402-mcp-server
-/tmp/mcp-publisher login github    # opens browser for OAuth
-/tmp/mcp-publisher publish          # submits server.json
+npx -y agentdata-mcp@1.2.0
 ```
 
-## Verification
+## Publish MCP Registry metadata
 
-After publish, check:
-- https://registry.modelcontextprotocol.io/servers (or the registry browser)
-- Your entry should appear by name (`io.github.YOUR_USERNAME/mcp-server`)
-
-## Testing locally (optional)
-
-Before publishing, test with Claude Desktop:
-
-1. Open `~/.claude/claude_desktop_config.json`
-2. Add:
-```json
-{
-  "mcpServers": {
-    "agentdata": {
-      "command": "node",
-      "args": ["/home/pete/cryptoanalyse/x402-mcp-server/index.js"]
-    }
-  }
-}
+```bash
+/tmp/mcp-publisher login github
+/tmp/mcp-publisher publish
 ```
-3. Restart Claude Desktop, ask: "What crypto tools do you have?"
+
+The registry metadata lives in `server.json`. Its version is checked against `package.json` by `npm run check-docs`.

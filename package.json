@@ -1,15 +1,29 @@
 {
   "name": "agentdata-mcp",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "MCP server for AgentData API — crypto market data for AI agents via x402, with a recorded and anchored history",
   "type": "module",
   "main": "index.js",
   "bin": {
     "agentdata-mcp": "./index.js"
   },
+  "files": [
+    "index.js",
+    "x402-client.js",
+    "README.md",
+    "LICENSE",
+    "server.json"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node index.js",
-    "check-catalogue": "node scripts-check-catalogue.mjs"
+    "test": "node --test tests/",
+    "check-catalogue": "node scripts-check-catalogue.mjs",
+    "sync-docs": "node scripts-sync-docs.mjs --write",
+    "check-docs": "node scripts-sync-docs.mjs",
+    "prepublishOnly": "npm test && npm run check-docs && npm run check-catalogue"
   },
   "keywords": [
     "mcp",
@@ -22,6 +36,7 @@
   "author": "AgentData",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "viem": "^2.47.12"
   }
 }
