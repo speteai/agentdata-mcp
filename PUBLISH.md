@@ -38,10 +38,13 @@ npm login
 npm publish --access public
 ```
 
-Verify that a clean machine can resolve and start the exact published version:
+Verify that a clean machine can resolve and start the exact published version.
+Run it through `npx`, not `node index.js`: 1.2.0 shipped an entry check that
+matched only the real path, so the binary exited 0 in silence under every MCP
+client while direct invocation worked fine.
 
 ```bash
-npx -y agentdata-mcp@1.2.0
+npx -y agentdata-mcp@$(node -p "require('./package.json').version")
 ```
 
 ## Publish MCP Registry metadata

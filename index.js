@@ -18,7 +18,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { createAutoPayFetch } from './x402-client.js';
 
@@ -368,6 +368,11 @@ async function main() {
   console.error(`AgentData MCP server ${PACKAGE_VERSION} running with ${TOOLS.length} tools (${mode})`);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+// npx and every MCP client config launch this through the .bin symlink, so
+// argv[1] is the symlink while import.meta.url is the file it points at.
+// Comparing them unresolved silently skipped main(): the process exited 0,
+// printed nothing, and the client saw a server that never spoke. Resolve first.
+const invokedAs = process.argv[1] ? pathToFileURL(realpathSync(process.argv[1])).href : null;
+if (invokedAs === import.meta.url) {
   main().catch(error => { console.error(error); process.exit(1); });
 }
