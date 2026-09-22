@@ -48,7 +48,18 @@ try {
 
 const liveNames = new Set(live.map((t) => t.name));
 const missing = [...liveNames].filter((n) => !mine.has(n));
-const extra = [...mine.keys()].filter((n) => !liveNames.has(n));
+// Served only while their recorded window passes the service's readiness gate.
+// On 2026-09-22 four of them were absent because the outage of 2026-09-07 left a
+// 20-hour hole inside their 30-day window; the full history can stay withheld
+// indefinitely. Absent-while-gated is the service working, not the catalogue
+// drifting — but a gated tool that IS served still has its price checked below.
+const GATED = new Set([
+  'get_signal_history_7d', 'get_signal_history_30d', 'get_signal_history_full',
+  'get_arbitrage_spread_history', 'get_funding_accuracy',
+]);
+const absent = [...mine.keys()].filter((n) => !liveNames.has(n));
+const withheld = absent.filter((n) => GATED.has(n));
+const extra = absent.filter((n) => !GATED.has(n));
 
 // Prices are quoted inside prose here; compare the numbers the service quotes.
 const priceOf = (d) => (String(d || '').match(/\$([0-9.]+) USDC/) || [])[1];
@@ -64,6 +75,7 @@ for (const t of live) {
 console.log(`package: ${mine.size} tools | service: ${liveNames.size} tools`);
 if (missing.length) console.log(`missing here (${missing.length}): ${missing.join(', ')}`);
 if (extra.length) console.log(`not served (${extra.length}): ${extra.join(', ')}`);
+if (withheld.length) console.log(`withheld by the readiness gate right now (${withheld.length}, not a discrepancy): ${withheld.join(', ')}`);
 for (const w of wrongPrice) console.log(`price: ${w.tool} says ${w.here}, the service charges ${w.service}`);
 
 const problems = missing.length + extra.length + wrongPrice.length;

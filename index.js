@@ -33,7 +33,7 @@ const PACKAGE_VERSION = JSON.parse(readFileSync(new URL('./package.json', import
 export const TOOLS = [
   {
     name: 'get_overnight_risk_brief',
-    description: 'Decision-ready overnight risk brief for $0.015 USDC: DEX-vs-CEX spreads, liquidation zones, funding predictions, sentiment, stablecoin health, and recorded changes since this wallet last called it. Same total price as the five parts, one settlement instead of five.',
+    description: 'Decision-ready overnight risk brief for $0.012 USDC: DEX-vs-CEX spreads, liquidation zones, funding predictions, sentiment, stablecoin health, and recorded changes since this wallet last called it. 20% cheaper than the five parts bought separately ($0.015), and one settlement instead of five.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/overnight-risk-brief',
   },
@@ -42,19 +42,19 @@ export const TOOLS = [
   // 2026-08-22 while this package did not. Rate-limited to 30 requests/min per IP.
   {
     name: 'try_crypto_prices',
-    description: 'FREE SAMPLE, no payment: real-time prices for BTC, ETH, SOL, BNB, XRP. Rate-limited to 30 requests/min. get_crypto_prices ($0.002 USDC) is the same data without the limit.',
+    description: 'FREE SAMPLE, no payment: the real-time BTC price, to judge format and source. Rate-limited to 30 requests/min. get_crypto_prices ($0.002 USDC) adds ETH, SOL, BNB and XRP. The response lists what the sample withholds.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/try/prices',
   },
   {
     name: 'try_sentiment',
-    description: 'FREE SAMPLE, no payment: current market sentiment. Rate-limited to 30 requests/min. get_sentiment is the same data without the limit.',
+    description: 'FREE SAMPLE, no payment: the Fear & Greed component of market sentiment. Rate-limited to 30 requests/min. get_sentiment adds the composite reading and the funding-derived component. The response lists what the sample withholds.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/try/sentiment',
   },
   {
     name: 'try_funding_rates',
-    description: 'FREE SAMPLE, no payment: perpetual funding rates. Rate-limited to 30 requests/min. get_funding_rates ($0.002 USDC) is the same data without the limit.',
+    description: 'FREE SAMPLE, no payment: the BTC perpetual funding rate. Rate-limited to 30 requests/min. get_funding_rates ($0.002 USDC) covers every tracked perpetual. The response lists what the sample withholds.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/try/funding-rates',
   },
@@ -70,13 +70,13 @@ export const TOOLS = [
   },
   {
     name: 'get_signal_history_30d',
-    description: 'The last 30 days of a recorded signal. Costs $0.012 USDC. Anchored on Base like every recorded day.',
+    description: 'The last 30 days of a recorded signal. Costs $0.012 USDC. Anchored on Base like every recorded day. Offered only while those 30 days pass the readiness gate (no hole over 6h); otherwise the service answers 404.',
     inputSchema: { type: 'object', properties: { signal: { type: 'string' } }, required: ['signal'] },
     endpoint: '/api/history/30d',
   },
   {
     name: 'get_signal_history_full',
-    description: 'The complete recorded series for a signal. Costs $0.020 USDC. Anchored on Base like every recorded day.',
+    description: 'The complete recorded series for a signal. Costs $0.020 USDC. Anchored on Base like every recorded day. Offered only while the whole series passes the readiness gate (no hole over 6h); otherwise the service answers 404.',
     inputSchema: { type: 'object', properties: { signal: { type: 'string' } }, required: ['signal'] },
     endpoint: '/api/history/full',
   },
@@ -85,13 +85,13 @@ export const TOOLS = [
   // itself: what the gap between them was, and whether our own forecasts held up.
   {
     name: 'get_arbitrage_spread_history',
-    description: '30 days of hourly cross-exchange spreads (MEXC/Binance/Bybit/OKX). Costs $0.015 USDC. Every venue publishes its own prices; nobody archives the spread between them.',
+    description: '30 days of hourly cross-exchange spreads (MEXC/Binance/Bybit/OKX). Costs $0.015 USDC. Every venue publishes its own prices; nobody archives the spread between them. Offered only while the 30-day record passes the readiness gate.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/history/arbitrage-spreads',
   },
   {
     name: 'get_funding_accuracy',
-    description: 'Track record of our funding predictions scored against the rates observed afterwards, over 30 days. Costs $0.015 USDC. Read it before paying for get_funding_predictions.',
+    description: 'Track record of our funding predictions scored against the rates observed afterwards, over 30 days. Costs $0.015 USDC. Read it before paying for get_funding_predictions. Offered only while the 30-day record passes the readiness gate.',
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/funding-accuracy',
   },
