@@ -1,6 +1,6 @@
 {
   "name": "agentdata-mcp",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "MCP server for AgentData API — crypto market data for AI agents via x402, with a recorded and anchored history",
   "type": "module",
   "main": "index.js",

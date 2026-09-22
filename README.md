@@ -73,15 +73,15 @@ live catalogue comparison both run before publication, so tool counts and prices
 <!-- tools:start -->
 | Tool | Price | What it gives you |
 |------|-------|-------------------|
-| `get_overnight_risk_brief` | $0.015 | Decision-ready overnight risk brief for $0.015 USDC: DEX-vs-CEX spreads, liquidation zones, funding predictions, sentiment, stablecoin health, and recorded changes since this wallet last called it. Same total price as the five parts, one settlement instead of five. |
-| `try_crypto_prices` | **free** | FREE SAMPLE, no payment: real-time prices for BTC, ETH, SOL, BNB, XRP. Rate-limited to 30 requests/min. get_crypto_prices ($0.002 USDC) is the same data without the limit. |
-| `try_sentiment` | **free** | FREE SAMPLE, no payment: current market sentiment. Rate-limited to 30 requests/min. get_sentiment is the same data without the limit. |
-| `try_funding_rates` | **free** | FREE SAMPLE, no payment: perpetual funding rates. Rate-limited to 30 requests/min. get_funding_rates ($0.002 USDC) is the same data without the limit. |
+| `get_overnight_risk_brief` | $0.012 | Decision-ready overnight risk brief for $0.012 USDC: DEX-vs-CEX spreads, liquidation zones, funding predictions, sentiment, stablecoin health, and recorded changes since this wallet last called it. 20% cheaper than the five parts bought separately ($0.015), and one settlement instead of five. |
+| `try_crypto_prices` | **free** | FREE SAMPLE, no payment: the real-time BTC price, to judge format and source. Rate-limited to 30 requests/min. get_crypto_prices ($0.002 USDC) adds ETH, SOL, BNB and XRP. The response lists what the sample withholds. |
+| `try_sentiment` | **free** | FREE SAMPLE, no payment: the Fear & Greed component of market sentiment. Rate-limited to 30 requests/min. get_sentiment adds the composite reading and the funding-derived component. The response lists what the sample withholds. |
+| `try_funding_rates` | **free** | FREE SAMPLE, no payment: the BTC perpetual funding rate. Rate-limited to 30 requests/min. get_funding_rates ($0.002 USDC) covers every tracked perpetual. The response lists what the sample withholds. |
 | `get_signal_history_7d` | $0.005 | The last 7 days of a recorded signal, not just its current value. Costs $0.005 USDC. Every recorded day is anchored on Base — verify at /anchors?verify=YYYY-MM-DD. |
-| `get_signal_history_30d` | $0.012 | The last 30 days of a recorded signal. Costs $0.012 USDC. Anchored on Base like every recorded day. |
-| `get_signal_history_full` | $0.020 | The complete recorded series for a signal. Costs $0.020 USDC. Anchored on Base like every recorded day. |
-| `get_arbitrage_spread_history` | $0.015 | 30 days of hourly cross-exchange spreads (MEXC/Binance/Bybit/OKX). Costs $0.015 USDC. Every venue publishes its own prices; nobody archives the spread between them. |
-| `get_funding_accuracy` | $0.015 | Track record of our funding predictions scored against the rates observed afterwards, over 30 days. Costs $0.015 USDC. Read it before paying for get_funding_predictions. |
+| `get_signal_history_30d` | $0.012 | The last 30 days of a recorded signal. Costs $0.012 USDC. Anchored on Base like every recorded day. Offered only while those 30 days pass the readiness gate (no hole over 6h); otherwise the service answers 404. |
+| `get_signal_history_full` | $0.020 | The complete recorded series for a signal. Costs $0.020 USDC. Anchored on Base like every recorded day. Offered only while the whole series passes the readiness gate (no hole over 6h); otherwise the service answers 404. |
+| `get_arbitrage_spread_history` | $0.015 | 30 days of hourly cross-exchange spreads (MEXC/Binance/Bybit/OKX). Costs $0.015 USDC. Every venue publishes its own prices; nobody archives the spread between them. Offered only while the 30-day record passes the readiness gate. |
+| `get_funding_accuracy` | $0.015 | Track record of our funding predictions scored against the rates observed afterwards, over 30 days. Costs $0.015 USDC. Read it before paying for get_funding_predictions. Offered only while the 30-day record passes the readiness gate. |
 | `get_market_pulse` | $0.018 | Bundle for $0.018 USDC: 8 signals in one call and one settlement — sentiment, liquidation levels, volatility, correlation, funding predictions, positioning, supply, stablecoin health. Bought separately they cost $0.022 and eight settlements. |
 | `get_funding_predictions` | $0.003 | Predicted next funding rate for BTC/ETH/SOL on MEXC, with time to settlement. Costs $0.003 USDC. Check get_signal_calibration first — this signal is scored openly and does not yet beat a naive baseline on mean error. |
 | `get_positioning` | $0.005 | Long/short positioning ratios across venues. Costs $0.005 USDC. |
@@ -127,7 +127,7 @@ do not count against it.
 
 ## Cost Economics
 
-`get_overnight_risk_brief` replaces five $0.015 calls with one $0.015 settlement.
+`get_overnight_risk_brief` replaces five calls totalling $0.015 with one $0.012 settlement.
 `get_market_pulse` bundles eight broader signals for $0.018 instead of $0.022 bought separately.
 The free calibration tool should be read before paying for a derived signal.
 
