@@ -37,6 +37,26 @@ export const TOOLS = [
     inputSchema: { type: 'object', properties: {}, required: [] },
     endpoint: '/api/overnight-risk-brief',
   },
+  // Memecoin risk. Every verdict is filed as a claim and scored publicly at
+  // /calibration after 7 days, so the record can be checked before trusting it.
+  {
+    name: 'get_memecoin_risk',
+    description: 'Memecoin risk verdict for one token on Solana or Base ($0.005 USDC): LOW, ELEVATED, HIGH or CRITICAL with every finding behind it — liquidity against real assets only, mint and freeze authority, honeypot and sell tax, liquidity lock, holder concentration. What a source cannot supply is reported as unknown, never as a pass. Each verdict is filed as a claim and scored publicly at /calibration after 7 days.',
+    inputSchema: { type: 'object', properties: {
+      chain: { type: 'string', enum: ['solana', 'base'], description: 'Chain the token lives on' },
+      token: { type: 'string', description: 'Mint address (Solana) or 0x contract address (Base)' },
+    }, required: ['chain', 'token'] },
+    endpoint: '/api/memecoin/risk',
+  },
+  {
+    name: 'get_new_memecoins',
+    description: 'New memecoin pools on Solana or Base, screened every 15 minutes ($0.010 USDC): each with its risk verdict, the market at screening time and whether its 7-day claim has resolved. The same population the public track record is computed from.',
+    inputSchema: { type: 'object', properties: {
+      chain: { type: 'string', enum: ['solana', 'base'], default: 'solana' },
+      hours: { type: 'integer', description: 'look-back window, 1-72', default: 24 },
+    }, required: [] },
+    endpoint: '/api/memecoin/new',
+  },
   // Free samples, listed before anything priced. An agent arriving here can taste
   // the data before deciding, which the hosted endpoint has offered since
   // 2026-08-22 while this package did not. Rate-limited to 30 requests/min per IP.
