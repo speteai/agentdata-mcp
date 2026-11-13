@@ -65,6 +65,17 @@ npm install
 node index.js
 ```
 
+### OpenClaw
+
+A skill for OpenClaw agents lives in [`skills/agentdata`](skills/agentdata/SKILL.md) and on ClawHub:
+
+```bash
+openclaw skills install @speteai/agentdata
+```
+
+It starts with the free samples and the calibration record, and explains how to register this server
+with the buyer key referenced from the environment instead of written into the config.
+
 ## Available Tools
 
 Generated from the package catalogue by `npm run sync-docs`. `npm run check-docs` and the
@@ -141,6 +152,7 @@ No ETH needed on the buyer wallet. The AgentData facilitator pays settlement gas
 
 - **[agentdata-api](https://github.com/speteai/agentdata-api)** — the underlying service
 - **[elizaos-plugin-agentdata](https://github.com/speteai/elizaos-plugin-agentdata)** — ElizaOS plugin version
+- **[ClawHub skill `agentdata`](https://clawhub.ai/speteai/agentdata)** — OpenClaw skill
 - **Live service:** https://agentdata-api.com
 - **Admin dashboard:** https://agentdata-api.com/admin
 
