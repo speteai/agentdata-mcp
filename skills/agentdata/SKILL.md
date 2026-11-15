@@ -1,6 +1,6 @@
 ---
 name: agentdata
-description: "Crypto market signals for agents, paid per call in USDC on Base via x402 (from $0.001, no account, no API key): funding rates and predictions, liquidation zones, sentiment, stablecoin peg health, DEX-vs-CEX and cross-exchange spreads, ETF flows, memecoin risk checks, recorded history anchored on Base. Every predictive signal has a public track record against a naive baseline. Use when the user asks about crypto market conditions, funding, liquidations, depeg risk or a memecoin's risk, or wants crypto data an agent can pay for itself."
+description: "Crypto market signals for agents, paid per call in USDC on Base via x402 (from $0.001, no account, no API key): funding rates and predictions, liquidation zones, sentiment, stablecoin peg health, DEX-vs-CEX and cross-exchange spreads, ETF flows, memecoin risk checks, labelled crypto news, a search for x402 services that answer right now, recorded history anchored on Base. Every predictive signal has a public track record against a naive baseline. Use when the user asks about crypto market conditions, funding, liquidations, depeg risk, a memecoin's risk or crypto news, needs a paid x402 service for some other task, or wants crypto data an agent can pay for itself."
 homepage: https://agentdata-api.com
 metadata:
   {
@@ -74,7 +74,7 @@ The user sets this up, not you:
 openclaw mcp add agentdata --command npx --arg=-y --arg agentdata-mcp \
   --env 'AGENTDATA_BUYER_PRIVATE_KEY=${AGENTDATA_BUYER_PRIVATE_KEY}' \
   --env AGENTDATA_SESSION_BUDGET_USDC=0.50 --no-probe
-openclaw mcp probe agentdata     # expect 36 tools
+openclaw mcp probe agentdata     # expect 39 tools
 ```
 
 `--no-probe` is needed: the check that `mcp add` runs before saving passes `${...}` through as text,
@@ -111,6 +111,9 @@ https://agentdata-api.com/llms.txt
 | Only what changed since this wallet last paid | `/api/diff?signal=<name>` | $0.001 |
 | Recorded history of a signal | `/api/history/7d?signal=<name>` | $0.005 |
 | Leave a condition watching while offline | `/api/watch?signal=&op=above&threshold=&hours=` | $0.010 |
+| Crypto news, each item labelled (assets, sentiment, relevance) | `/api/news?hours=24&asset=BTC` | $0.003 |
+| Label one crypto text (see Privacy) | `/api/grid/classify?text=<up to 1,000 chars>` | $0.005 |
+| Find another paid x402 service that answers now | `/api/x402/services?q=<words>&maxPrice=0.01` | $0.005 |
 
 The full list with every parameter is in `/info` and `/openapi.json`. History is offered only for
 signals whose record has no hole longer than six hours; others answer `404`.
@@ -135,5 +138,7 @@ Each recorded day can be recomputed and compared with the root published on Base
 ## Privacy
 
 Requests carry no account. The paying wallet address is visible on-chain, like any USDC transfer, and
-is used by the service to keep `/api/diff` cursors and watches per wallet. Like any web service it logs
+is used by the service to keep `/api/diff` cursors and watches per wallet. Text sent to
+`/api/grid/classify` is processed in plain text by independent GPU operators on AI Power Grid: never
+send anything private there. Like any web service it logs
 requests (time, path, status, IP address, user agent) for operation and rate limiting.

@@ -57,6 +57,38 @@ export const TOOLS = [
     }, required: [] },
     endpoint: '/api/memecoin/new',
   },
+  // News and classification run on AI Power Grid (an open model on independent
+  // GPU operators); the x402 search reads the service's daily census of the
+  // Coinbase Bazaar. All three since 2026-11-15 in the service, 1.4.0 here.
+  {
+    name: 'get_crypto_news',
+    description: 'Crypto news from seven public feeds, each item labelled when it appeared ($0.003 USDC): assets, sentiment (bullish/bearish/neutral), relevance, category, plus counts per sentiment and per asset. Labels by an open model on AI Power Grid; they say what the news claims, not what the price will do.',
+    inputSchema: { type: 'object', properties: {
+      hours: { type: 'integer', description: 'look-back window, 1-72', default: 24 },
+      asset: { type: 'string', description: 'only items about this ticker, e.g. BTC' },
+      relevance: { type: 'string', enum: ['high', 'medium', 'low'], description: 'minimum relevance' },
+    }, required: [] },
+    endpoint: '/api/news',
+  },
+  {
+    name: 'classify_crypto_text',
+    description: 'Classify one crypto-related text of up to 1,000 characters ($0.005 USDC): assets, sentiment, relevance, category from fixed vocabularies, never free text. Runs on AI Power Grid, where independent operators process the text in plain text: do not send private data. Not charged when it fails.',
+    inputSchema: { type: 'object', properties: {
+      text: { type: 'string', description: 'the text to classify, 1-1000 characters' },
+    }, required: ['text'] },
+    endpoint: '/api/grid/classify',
+  },
+  {
+    name: 'find_x402_services',
+    description: 'Find x402 services that answer right now ($0.005 USDC): searches our daily census of the Coinbase Bazaar (about 34,000 listings) by words, optionally under a maximum price, and checks the top results live. Each result says whether it answered with 402, how fast, and whether its live price still matches the listing. At most two results per host.',
+    inputSchema: { type: 'object', properties: {
+      q: { type: 'string', description: 'words to look for, e.g. "weather forecast"' },
+      maxPrice: { type: 'number', description: 'maximum price per call in USDC' },
+      network: { type: 'string', enum: ['base', 'solana'], default: 'base' },
+      limit: { type: 'integer', description: '1-20', default: 10 },
+    }, required: ['q'] },
+    endpoint: '/api/x402/services',
+  },
   // Free samples, listed before anything priced. An agent arriving here can taste
   // the data before deciding, which the hosted endpoint has offered since
   // 2026-08-22 while this package did not. Rate-limited to 30 requests/min per IP.
