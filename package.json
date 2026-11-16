@@ -1,6 +1,6 @@
 {
   "name": "agentdata-mcp",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "MCP server for AgentData API — crypto market data for AI agents via x402, with a recorded and anchored history",
   "type": "module",
   "main": "index.js",
@@ -23,7 +23,8 @@
     "check-catalogue": "node scripts-check-catalogue.mjs",
     "sync-docs": "node scripts-sync-docs.mjs --write",
     "check-docs": "node scripts-sync-docs.mjs",
-    "prepublishOnly": "npm test && npm run check-docs && npm run check-catalogue"
+    "prepublishOnly": "npm test && npm run check-docs && npm run check-catalogue",
+    "sync-descriptions": "node scripts-sync-descriptions.mjs --write"
   },
   "keywords": [
     "mcp",

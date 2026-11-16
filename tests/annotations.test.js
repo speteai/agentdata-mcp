@@ -13,7 +13,7 @@ test('paid tools are never read-only, free tools are', () => {
     assert.equal(a.openWorldHint, true, t.name);
   }
   assert.deepEqual(TOOLS.filter(isFree).map((t) => t.name).sort(),
-    ['get_signal_calibration', 'try_crypto_prices', 'try_funding_rates', 'try_sentiment']);
+    ['get_signal_calibration', 'get_tool_pricing', 'try_crypto_prices', 'try_funding_rates', 'try_sentiment']);
 });
 
 // A paid tool without a price would read as free to anyone skimming, and as paid

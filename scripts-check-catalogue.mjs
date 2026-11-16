@@ -90,7 +90,12 @@ if (extra.length) console.log(`not served (${extra.length}): ${extra.join(', ')}
 if (withheld.length) console.log(`withheld by the readiness gate right now (${withheld.length}, not a discrepancy): ${withheld.join(', ')}`);
 for (const w of wrongPrice) console.log(`price: ${w.tool} says ${w.here}, the service charges ${w.service}`);
 for (const w of wrongHints) console.log(`annotation: ${w}`);
+// Descriptions are what an LLM reads to pick a tool; they are written in the
+// service and copied here verbatim (npm run sync-descriptions).
+const unescape = (d) => d.replace(/\\(.)/g, '$1');
+const wrongText = live.filter((t) => mine.has(t.name) && unescape(mine.get(t.name)) !== t.description).map((t) => t.name);
+if (wrongText.length) console.log(`description differs from the service (${wrongText.length}): ${wrongText.join(', ')} — run npm run sync-descriptions`);
 
-const problems = missing.length + extra.length + wrongPrice.length + wrongHints.length;
+const problems = missing.length + extra.length + wrongPrice.length + wrongHints.length + wrongText.length;
 console.log(problems ? `\n${problems} discrepancy(ies) — fix before publishing.` : '\nCatalogue matches the service.');
 process.exit(problems ? 1 : 0);

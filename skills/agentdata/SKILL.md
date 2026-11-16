@@ -33,6 +33,7 @@ curl -s https://agentdata-api.com/api/try/prices          # BTC price (paid vers
 curl -s https://agentdata-api.com/api/try/sentiment       # Fear & Greed component
 curl -s https://agentdata-api.com/api/try/funding-rates   # BTC perpetual funding rate
 curl -s https://agentdata-api.com/calibration             # track record of every signal
+curl -s https://agentdata-api.com/pricing                 # every price in one call, for a budget
 curl -s https://agentdata-api.com/info                    # live catalogue with current prices
 ```
 
@@ -49,8 +50,9 @@ concrete red flags, never as a buy signal.
 
 ## Step 2: paying
 
-Prices are in the `402` reply and in `/info`; they are what the service charges, so do not rely on a
-remembered price. Most calls cost $0.002 to $0.005.
+Prices are in the `402` reply, in `/pricing` and in `/info`; they are what the service charges, so do
+not rely on a remembered price. Responses of scored signals carry a `trackRecord` field: if it says
+`beatsBaseRate: false` or `beatsNaive: false`, use the value as a reading, not as a forecast. Most calls cost $0.002 to $0.005.
 
 **Do not spend the user's money without their go-ahead.** Say what you want to call and what it costs,
 and keep to a budget they set.
@@ -60,7 +62,7 @@ and keep to a budget they set.
 The npm package `agentdata-mcp` pays automatically from a buyer wallet, with a per-call cap
 (`AGENTDATA_MAX_PAYMENT_USDC`, default 0.05) and a per-process budget
 (`AGENTDATA_SESSION_BUDGET_USDC`, default 1.00). It exposes every endpoint as a tool.
-The four free tools are marked read-only, so OpenClaw can run them without asking; the paid ones are
+The five free tools are marked read-only, so OpenClaw can run them without asking; the paid ones are
 not, so it asks before each call that would pay. Leave it that way.
 
 The user sets this up, not you:
@@ -85,7 +87,7 @@ happens later if the variable is missing from OpenClaw's environment: the server
 Without a key at all (leave out the first `--env` and `--no-probe`), the server still runs and answers
 the free tools; paid tools then return the payment requirements instead of data.
 
-Tested with OpenClaw 2026.11.3 and agentdata-mcp 1.4.1.
+Tested with OpenClaw 2026.11.3 and agentdata-mcp 1.5.0.
 
 **The wallet must be a plain account.** A wallet that delegates to a contract through EIP-7702 cannot
 pay this way: USDC then checks the signature through the delegate contract, which rejects it, and every
