@@ -72,12 +72,25 @@ for (const t of live) {
   }
 }
 
+// Annotations decide whether a client asks before a call; a paid tool marked
+// read-only on one side would let an agent spend there unasked.
+const { TOOLS: OURS, toolAnnotations } = await import('./index.js');
+const wrongHints = [];
+for (const t of live) {
+  const ours = OURS.find((o) => o.name === t.name);
+  if (!ours) continue;
+  const a = toolAnnotations(ours), b = t.annotations || {};
+  for (const k of ['readOnlyHint', 'destructiveHint', 'idempotentHint', 'openWorldHint']) {
+    if (a[k] !== b[k]) wrongHints.push(`${t.name}.${k}: here ${a[k]}, service ${b[k]}`);
+  }
+}
 console.log(`package: ${mine.size} tools | service: ${liveNames.size} tools`);
 if (missing.length) console.log(`missing here (${missing.length}): ${missing.join(', ')}`);
 if (extra.length) console.log(`not served (${extra.length}): ${extra.join(', ')}`);
 if (withheld.length) console.log(`withheld by the readiness gate right now (${withheld.length}, not a discrepancy): ${withheld.join(', ')}`);
 for (const w of wrongPrice) console.log(`price: ${w.tool} says ${w.here}, the service charges ${w.service}`);
+for (const w of wrongHints) console.log(`annotation: ${w}`);
 
-const problems = missing.length + extra.length + wrongPrice.length;
+const problems = missing.length + extra.length + wrongPrice.length + wrongHints.length;
 console.log(problems ? `\n${problems} discrepancy(ies) — fix before publishing.` : '\nCatalogue matches the service.');
 process.exit(problems ? 1 : 0);

@@ -60,6 +60,8 @@ and keep to a budget they set.
 The npm package `agentdata-mcp` pays automatically from a buyer wallet, with a per-call cap
 (`AGENTDATA_MAX_PAYMENT_USDC`, default 0.05) and a per-process budget
 (`AGENTDATA_SESSION_BUDGET_USDC`, default 1.00). It exposes every endpoint as a tool.
+The four free tools are marked read-only, so OpenClaw can run them without asking; the paid ones are
+not, so it asks before each call that would pay. Leave it that way.
 
 The user sets this up, not you:
 
@@ -83,7 +85,7 @@ happens later if the variable is missing from OpenClaw's environment: the server
 Without a key at all (leave out the first `--env` and `--no-probe`), the server still runs and answers
 the free tools; paid tools then return the payment requirements instead of data.
 
-Tested with OpenClaw 2026.11.3 and agentdata-mcp 1.4.0.
+Tested with OpenClaw 2026.11.3 and agentdata-mcp 1.4.1.
 
 **The wallet must be a plain account.** A wallet that delegates to a contract through EIP-7702 cannot
 pay this way: USDC then checks the signature through the delegate contract, which rejects it, and every

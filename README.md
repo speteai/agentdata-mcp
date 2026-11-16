@@ -124,6 +124,8 @@ live catalogue comparison both run before publication, so tool counts and prices
 | `get_stablecoin_health` | $0.002 | Get stablecoin peg monitoring (USDC, DAI live depeg check) + top 10 stablecoins by market cap. Costs $0.002 USDC. |
 | `get_historical` | $0.010 | Get historical OHLCV candles for backtesting. Costs $0.010 USDC. |
 <!-- tools:end -->
+Every tool carries MCP annotations: the four free tools are `readOnlyHint: true`; paid tools are deliberately not read-only and not idempotent, because with a buyer key each call pays again. Clients that ask before non-read-only calls will therefore ask before every payment.
+
 The readiness gate withholds history tools until their own record is deep enough to justify charging. Run `npm run check-catalogue` before publishing to compare this package with the live service.
 
 ## Environment Variables

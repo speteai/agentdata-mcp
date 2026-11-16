@@ -332,6 +332,26 @@ export const TOOLS = [
   },
 ];
 
+/** Free tools say so first in their description; README pricing reads the same mark. */
+export const isFree = (tool) => /^FREE\b/.test(tool.description);
+
+/**
+ * MCP tool annotations: what a client may assume before calling.
+ *
+ * Free tools only read public data, so clients may run them without asking.
+ * Paid tools are deliberately NOT read-only: with AGENTDATA_BUYER_PRIVATE_KEY set,
+ * a call pays from that wallet, and a client trusting readOnlyHint would let an
+ * agent spend without anyone approving it. Each paid call pays again, so they are
+ * not idempotent either. Nothing deletes or overwrites anything (not destructive);
+ * all of them reach agentdata-api.com (openWorld). Same rule as the hosted MCP
+ * (mcp-http.js in the service); check-catalogue compares the two.
+ */
+export function toolAnnotations(tool) {
+  return isFree(tool)
+    ? { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true }
+    : { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true };
+}
+
 // ============ X402 CLIENT (optional auto-pay) ============
 
 let x402Fetch = null;
@@ -360,6 +380,7 @@ async function main() {
       name: t.name,
       description: t.description,
       inputSchema: t.inputSchema,
+      annotations: toolAnnotations(t),
     })),
   }));
 
