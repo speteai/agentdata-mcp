@@ -1,6 +1,6 @@
 ---
 name: agentdata
-description: "Crypto market signals for agents, paid per call in USDC on Base via x402 (from $0.001, no account, no API key): funding rates and predictions, liquidation zones, sentiment, stablecoin peg health, DEX-vs-CEX and cross-exchange spreads, ETF flows, memecoin risk checks, labelled crypto news, a search for x402 services that answer right now, recorded history anchored on Base. Every predictive signal has a public track record against a naive baseline. Use when the user asks about crypto market conditions, funding, liquidations, depeg risk, a memecoin's risk or crypto news, needs a paid x402 service for some other task, or wants crypto data an agent can pay for itself."
+description: "Crypto market signals and pre-trade checks for agents, paid per call in USDC on Base via x402 (from $0.001, no account, no API key): funding rates and predictions, liquidation zones, sentiment, stablecoin peg health, DEX-vs-CEX and cross-exchange spreads, ETF flows, memecoin risk checks, labelled crypto news, a search for x402 services that answer right now, a red-flag check before a trade, wallet liquidation risk with alerts, signed receipts, recorded history anchored on Base. Every predictive signal has a public track record against a naive baseline. Use when the user asks about crypto market conditions, funding, liquidations, depeg risk, a memecoin's risk or crypto news, needs a paid x402 service for some other task, or wants crypto data an agent can pay for itself."
 homepage: https://agentdata-api.com
 metadata:
   {
@@ -114,7 +114,9 @@ https://agentdata-api.com/llms.txt
 | One memecoin on Solana or Base | `/api/memecoin/risk?chain=solana&token=<mint>` | $0.005 |
 | Only what changed since this wallet last paid | `/api/diff?signal=<name>` | $0.001 |
 | Recorded history of a signal | `/api/history/7d?signal=<name>` | $0.005 |
-| Leave a condition watching while offline | `/api/watch?signal=&op=above&threshold=&hours=` | $0.010 |
+| Red flags before one concrete trade (slippage, liquidation distance, funding, peg) | `/api/pretrade-check?asset=BTC&side=long&sizeUsd=10000&leverage=5` | $0.008 |
+| How close a wallet is to liquidation on Aave v3 / Morpho (Base) | `/api/wallet/risk?address=<0x…>` | $0.005 |
+| Leave a condition watching while offline, and be woken (`webhook=` or `ntfy=`) | `/api/watch?signal=&op=above&threshold=&hours=` | $0.010 |
 | Crypto news, each item labelled (assets, sentiment, relevance) | `/api/news?hours=24&asset=BTC` | $0.003 |
 | Label one crypto text (see Privacy) | `/api/grid/classify?text=<up to 1,000 chars>` | $0.005 |
 | Find another paid x402 service that answers now | `/api/x402/services?q=<words>&maxPrice=0.01` | $0.005 |
@@ -133,6 +135,14 @@ signals whose record has no hole longer than six hours; others answer `404`.
 | `404` on history | that record is not complete enough to sell | use a shorter tier or `/api/diff` |
 
 A payment is only settled when the data is delivered with status 200.
+
+## Receipts
+
+Every paid answer carries a signed receipt (`X-AgentData-Receipt` and `X-AgentData-Receipt-Signature`;
+over MCP it is appended to the tool result). It binds the SHA-256 of the answer to the request and to
+the payment authorization's nonce. Keep it if you may need to show later what data a decision was
+based on. Signer and how to check: `https://agentdata-api.com/.well-known/agentdata-receipts.json`;
+free check: `/receipts/verify?receipt=&signature=`.
 
 ## Checking a record yourself
 

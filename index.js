@@ -49,6 +49,25 @@ export const TOOLS = [
     endpoint: '/api/memecoin/risk',
   },
   {
+    name: 'get_wallet_risk',
+    description: 'Lending health of one wallet on Base ($0.005 USDC): every borrowing position on Aave v3 and Morpho Blue with health factor, band and how far collateral may fall before liquidation, weakest first. Use before adding risk to a wallet you manage, or to check a position you are not watching. A snapshot, not a forecast; Compound, Moonwell and other chains are not covered. To be woken when it falls, use watch_condition with signal=wallet-health.',
+    inputSchema: { type: 'object', properties: { address: { type: 'string', description: '0x address of the wallet' } }, required: ['address'] },
+    endpoint: '/api/wallet/risk',
+  },
+  {
+    name: 'check_trade',
+    description: 'Red flags before one concrete trade ($0.008 USDC): slippage against the visible order book, liquidation distance against a normal day of movement, funding the position would pay, on-chain vs exchange price, USDC peg; for a memecoin its red flags and price impact. Use before placing an order. No go/no-go verdict: facts against stated thresholds, and rows with a forecast carry their scored record. For BTC, ETH, SOL or a memecoin by chain and token.',
+    inputSchema: { type: 'object', properties: {
+      asset: { type: 'string', enum: ['BTC', 'ETH', 'SOL'], description: 'major to trade; or give chain and token for a memecoin' },
+      side: { type: 'string', enum: ['long', 'short'] },
+      sizeUsd: { type: 'number', description: 'position notional in USD' },
+      leverage: { type: 'number', description: '1-100, default 1 (spot)' },
+      chain: { type: 'string', enum: ['solana', 'base'], description: 'memecoin chain' },
+      token: { type: 'string', description: 'memecoin mint or contract address' },
+    }, required: ['side', 'sizeUsd'] },
+    endpoint: '/api/pretrade-check',
+  },
+  {
     name: 'get_new_memecoins',
     description: 'Newest memecoin pools on Solana or Base with at least $10,000 of real liquidity, screened every 15 minutes, each with its risk verdict and the market at screening ($0.010 USDC). Use to see what just launched or to study launches. Not for one token you already know (get_memecoin_risk is cheaper). Most of these pools are dead within 7 days; each response carries the measured rate.',
     inputSchema: { type: 'object', properties: {
@@ -195,8 +214,14 @@ export const TOOLS = [
   },
   {
     name: 'watch_condition',
-    description: 'Leave a condition on a recorded signal and let this always-on server check it ($0.010 USDC, up to 168h), e.g. sentiment below 20. Use when you will not be running at the moment it matters. Check whether it fired with a free GET to /watch/status?wallet=&token= (both returned when you register). Not for reading a value now: call the signal tool.',
-    inputSchema: { type: 'object', properties: { signal: { type: 'string' }, subject: { type: 'string', description: 'e.g. BTC_USDT' }, op: { type: 'string', enum: ['above','below'] }, threshold: { type: 'number' }, hours: { type: 'number' } }, required: ['signal','op','threshold'] },
+    description: 'Leave a condition on a recorded signal, or on a wallet health factor, and let this always-on server check it every 5 minutes ($0.010 USDC, up to 168h). Use when you will not be running at the moment it matters. Pass webhook= (signed POST) or ntfy= (push topic) to be woken when it fires; /watch/status?wallet=&token= stays free. For a wallet use signal=wallet-health&subject=<address>&op=below&threshold=1.3. Not for reading a value now.',
+    inputSchema: { type: 'object', properties: {
+      signal: { type: 'string', description: 'a recorded signal (e.g. sentiment) or wallet-health' },
+      subject: { type: 'string', description: 'e.g. BTC_USDT; for wallet-health the 0x address' },
+      op: { type: 'string', enum: ['above','below'] }, threshold: { type: 'number' }, hours: { type: 'number' },
+      webhook: { type: 'string', description: 'public https URL that receives a signed POST when the watch fires' },
+      ntfy: { type: 'string', description: 'ntfy.sh topic, 12-64 characters, that receives a push when the watch fires' },
+    }, required: ['signal','op','threshold'] },
     endpoint: '/api/watch',
   },
   {
@@ -428,8 +453,15 @@ async function main() {
       }
 
       const data = await res.json();
+      // Paid answers carry a signed receipt in headers (X-AgentData-Receipt);
+      // an MCP client never sees headers, so it is handed over with the data.
+      // bodySha256 covers the compact JSON of the data: JSON.stringify(data).
+      const signed = res.headers.get('x-agentdata-receipt');
+      const sig = res.headers.get('x-agentdata-receipt-signature');
+      const parts = [JSON.stringify(data, null, 2)];
+      if (signed && sig) parts.push(`Signed receipt: ${signed}\nReceipt signature: ${sig}\nVerify free: GET ${BASE_URL}/receipts/verify?receipt=<receipt>&signature=<signature>. bodySha256 is the SHA-256 of the compact JSON of the data above; signer at ${BASE_URL}/.well-known/agentdata-receipts.json.`);
       return {
-        content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
+        content: [{ type: 'text', text: parts.join('\n\n') }],
       };
     } catch (e) {
       return {
