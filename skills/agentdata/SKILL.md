@@ -83,7 +83,7 @@ happens later if the variable is missing from OpenClaw's environment: the server
 Without a key at all (leave out the first `--env` and `--no-probe`), the server still runs and answers
 the free tools; paid tools then return the payment requirements instead of data.
 
-Tested with OpenClaw 2026.11.3 and agentdata-mcp 1.3.0.
+Tested with OpenClaw 2026.11.3 and agentdata-mcp 1.4.0.
 
 **The wallet must be a plain account.** A wallet that delegates to a contract through EIP-7702 cannot
 pay this way: USDC then checks the signature through the delegate contract, which rejects it, and every
