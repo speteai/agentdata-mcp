@@ -78,7 +78,7 @@ The user sets this up, not you:
 openclaw mcp add agentdata --command npx --arg=-y --arg agentdata-mcp \
   --env 'AGENTDATA_BUYER_PRIVATE_KEY=${AGENTDATA_BUYER_PRIVATE_KEY}' \
   --env AGENTDATA_SESSION_BUDGET_USDC=0.50 --no-probe
-openclaw mcp probe agentdata     # expect 39 tools
+openclaw mcp probe agentdata     # expect 42 tools
 ```
 
 `--no-probe` is needed: the check that `mcp add` runs before saving passes `${...}` through as text,
